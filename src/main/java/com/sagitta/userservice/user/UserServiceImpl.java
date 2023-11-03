@@ -2,6 +2,7 @@ package com.sagitta.userservice.user;
 
 import com.sagitta.userservice.user.domain.User;
 import com.sagitta.userservice.user.domain.constants.CityCategory;
+import com.sagitta.userservice.user.domain.constants.Gender;
 import com.sagitta.userservice.user.domain.dto.UserInfoResponseDto;
 import com.sagitta.userservice.user.domain.dto.UserUpdateRequestDto;
 import com.sagitta.userservice.user.domain.dto.UserUpdateResponseDto;
@@ -46,9 +47,19 @@ public class UserServiceImpl implements UserService {
 
         }
         User user = optionalUser.get();
-        user.setAddress(getUserCityCategory(userUpdateRequestDto.getAddress()));
-        user.setDob(convertDOB(userUpdateRequestDto.getDob()));
-        user.setName(userUpdateRequestDto.getName());
+        if(userUpdateRequestDto.getName() != null)
+            user.setName(userUpdateRequestDto.getName());
+        if(userUpdateRequestDto.getEmail() != null)
+            user.setEmail(userUpdateRequestDto.getEmail());
+        if(userUpdateRequestDto.getPhone() != null)
+            user.setPhone(userUpdateRequestDto.getPhone());
+        if(userUpdateRequestDto.getAddress() != null)
+            user.setAddress(getUserCityCategory(userUpdateRequestDto.getAddress()));
+        if(convertDOB(userUpdateRequestDto.getDob()) != null)
+            user.setDob(convertDOB(userUpdateRequestDto.getDob()));
+        if(userUpdateRequestDto.getGender() != null)
+            user.setGender(getUserGender(userUpdateRequestDto.getGender()));
+
 
         userRepository.save(user);
 
@@ -69,6 +80,12 @@ public class UserServiceImpl implements UserService {
         Period period = Period.between(birthDate, currentDate);
 
         return period.getYears();
+    }
+
+    private Gender getUserGender(String gender) {
+        if(gender.equals(Gender.MALE.getGender()))
+            return Gender.MALE;
+        else return Gender.FEMALE;
     }
 
     public CityCategory getUserCityCategory(String address) {
