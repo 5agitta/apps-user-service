@@ -127,7 +127,7 @@ public class UserServiceImpl implements UserService {
             userInfoResponseDto.setAge(getUserAge(user.getDob()));
         }
         if (user.getGender() != null) {
-            userInfoResponseDto.setGender(user.getGender().toString());
+            userInfoResponseDto.setGender(user.getGender().getGender());
         }
         return userInfoResponseDto;
     }
