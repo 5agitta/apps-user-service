@@ -1,0 +1,16 @@
+config:
+  SERVER_PORT: "8084"
+  SPRING_PROFILES_ACTIVE: "prod"
+  ZIPKIN_URL: "http://tempo.dev:9411"
+  LOKI_DISTRIBUTOR_URL: "http://loki-headless.dev:3100/loki/api/v1/push"
+
+replicaCount: 1
+
+image:
+  name: user-service
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  targetPort: 8084
+  nodePort: 30884
