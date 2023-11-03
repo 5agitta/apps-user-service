@@ -33,11 +33,11 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.ok(getUserEntityToDto(user));
         }
         User user = optionalUser.get();
-        return ResponseEntity.ok(getUserEntityToDto(user)) ;
+        return ResponseEntity.ok(getUserEntityToDto(user));
     }
 
     public ResponseEntity<UserInfoResponseDto> updateUser(UserUpdateRequestDto userUpdateRequestDto) {
-    try {
+
         Optional<User> optionalUser = userRepository.findByEtin(userUpdateRequestDto.getEtin());
         if (!optionalUser.isPresent()) {
             User user = getDtoToEntity(userUpdateRequestDto);
@@ -57,11 +57,8 @@ public class UserServiceImpl implements UserService {
 
 
         return ResponseEntity.ok(responseDto);
-    } catch (ParseException ex) {
-        // Handle the ParseException, e.g., log an error or return an error response
-        return ResponseEntity.badRequest().build(); // Create an error response method
+
     }
-}
 
     public int getUserAge(Date dob) {
         // Convert the Date to a LocalDate
@@ -83,32 +80,36 @@ public class UserServiceImpl implements UserService {
             return CityCategory.NON_CITY;
     }
 
-    public Date convertDOB(String dob) throws ParseException {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        return formatter.parse(dob);
+    public Date convertDOB(String dob) {
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            return formatter.parse(dob);
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     private UserInfoResponseDto getUserEntityToDto(User user) {
         UserInfoResponseDto userInfoResponseDto = new UserInfoResponseDto();
-        if(user.getEtin() != null) {
+        if (user.getEtin() != null) {
             userInfoResponseDto.setEtin(user.getEtin());
         }
-        if(user.getName() != null) {
+        if (user.getName() != null) {
             userInfoResponseDto.setName(user.getName());
         }
-        if(user.getEmail() != null) {
+        if (user.getEmail() != null) {
             userInfoResponseDto.setEmail(user.getEmail());
         }
-        if(user.getPhone() != null) {
+        if (user.getPhone() != null) {
             userInfoResponseDto.setPhone(user.getPhone());
         }
-        if(user.getAddress() != null) {
+        if (user.getAddress() != null) {
             userInfoResponseDto.setAddress(user.getAddress().toString());
         }
-        if(user.getDob() != null) {
+        if (user.getDob() != null) {
             userInfoResponseDto.setAge(getUserAge(user.getDob()));
         }
-        if(user.getGender() != null) {
+        if (user.getGender() != null) {
             userInfoResponseDto.setGender(user.getGender().toString());
         }
         return userInfoResponseDto;
@@ -116,27 +117,23 @@ public class UserServiceImpl implements UserService {
 
     private User getDtoToEntity(UserUpdateRequestDto userUpdateRequestDto) {
         User user = new User();
-        if(userUpdateRequestDto.getEtin() != null) {
+        if (userUpdateRequestDto.getEtin() != null) {
             user.setEtin(userUpdateRequestDto.getEtin());
         }
-        if(userUpdateRequestDto.getName() != null) {
+        if (userUpdateRequestDto.getName() != null) {
             user.setName(userUpdateRequestDto.getName());
         }
-        if(userUpdateRequestDto.getEmail() != null) {
+        if (userUpdateRequestDto.getEmail() != null) {
             user.setEmail(userUpdateRequestDto.getEmail());
         }
-        if(userUpdateRequestDto.getPhone() != null) {
+        if (userUpdateRequestDto.getPhone() != null) {
             user.setPhone(userUpdateRequestDto.getPhone());
         }
-        if(userUpdateRequestDto.getAddress() != null) {
+        if (userUpdateRequestDto.getAddress() != null) {
             user.setAddress(getUserCityCategory(userUpdateRequestDto.getAddress()));
         }
-        if(userUpdateRequestDto.getDob() != null) {
-            try {
-                user.setDob(convertDOB(userUpdateRequestDto.getDob()));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+        if (userUpdateRequestDto.getDob() != null) {
+            user.setDob(convertDOB(userUpdateRequestDto.getDob()));
         }
         return user;
     }
