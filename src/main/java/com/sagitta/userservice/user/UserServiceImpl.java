@@ -6,6 +6,7 @@ import com.sagitta.userservice.user.domain.dto.UserInfoResponseDto;
 import com.sagitta.userservice.user.domain.dto.UserUpdateRequestDto;
 import com.sagitta.userservice.user.domain.dto.UserUpdateResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -22,28 +23,27 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-    public UserInfoResponseDto getUserInfo(String etin) {
+    public ResponseEntity<UserInfoResponseDto> getUserInfo(String etin) {
         Optional<User> optionalUser = userRepository.findByEtin(etin);
         if (!optionalUser.isPresent()) {
-            return null;
+            User user = User.builder()
+                    .etin(etin)
+                    .build();
+            userRepository.save(user);
+            return ResponseEntity.ok(getUserEntityToDto(user));
         }
         User user = optionalUser.get();
-        return UserInfoResponseDto.builder()
-                .etin(user.getEtin())
-                .address(user.getAddress().toString())
-                .age(getUserAge(user.getDob()))
-                .phone(user.getPhone())
-                .email(user.getEmail())
-                .name(user.getName())
-                .gender(user.getGender().toString())
-                .build();
+        return ResponseEntity.ok(getUserEntityToDto(user)) ;
     }
 
-    public UserUpdateResponseDto updateUser(UserUpdateRequestDto userUpdateRequestDto) {
+    public ResponseEntity<UserInfoResponseDto> updateUser(UserUpdateRequestDto userUpdateRequestDto) {
     try {
         Optional<User> optionalUser = userRepository.findByEtin(userUpdateRequestDto.getEtin());
         if (!optionalUser.isPresent()) {
-            return null;
+            User user = getDtoToEntity(userUpdateRequestDto);
+            userRepository.save(user);
+            return ResponseEntity.ok(getUserEntityToDto(user));
+
         }
         User user = optionalUser.get();
         user.setAddress(getUserCityCategory(userUpdateRequestDto.getAddress()));
@@ -53,21 +53,13 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         // Create and return a response DTO with the updated user details
-        UserUpdateResponseDto responseDto = UserUpdateResponseDto.builder()
-                .etin(user.getEtin())
-                .address(user.getAddress().toString())
-                .age(getUserAge(user.getDob()))
-                .phone(user.getPhone())
-                .email(user.getEmail())
-                .name(user.getName())
-                .gender(user.getGender().toString())
-                .build();
+        UserInfoResponseDto responseDto = getUserEntityToDto(user);
 
 
-        return responseDto;
+        return ResponseEntity.ok(responseDto);
     } catch (ParseException ex) {
         // Handle the ParseException, e.g., log an error or return an error response
-        return null; // Create an error response method
+        return ResponseEntity.badRequest().build(); // Create an error response method
     }
 }
 
@@ -94,5 +86,58 @@ public class UserServiceImpl implements UserService {
     public Date convertDOB(String dob) throws ParseException {
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         return formatter.parse(dob);
+    }
+
+    private UserInfoResponseDto getUserEntityToDto(User user) {
+        UserInfoResponseDto userInfoResponseDto = new UserInfoResponseDto();
+        if(user.getEtin() != null) {
+            userInfoResponseDto.setEtin(user.getEtin());
+        }
+        if(user.getName() != null) {
+            userInfoResponseDto.setName(user.getName());
+        }
+        if(user.getEmail() != null) {
+            userInfoResponseDto.setEmail(user.getEmail());
+        }
+        if(user.getPhone() != null) {
+            userInfoResponseDto.setPhone(user.getPhone());
+        }
+        if(user.getAddress() != null) {
+            userInfoResponseDto.setAddress(user.getAddress().toString());
+        }
+        if(user.getDob() != null) {
+            userInfoResponseDto.setAge(getUserAge(user.getDob()));
+        }
+        if(user.getGender() != null) {
+            userInfoResponseDto.setGender(user.getGender().toString());
+        }
+        return userInfoResponseDto;
+    }
+
+    private User getDtoToEntity(UserUpdateRequestDto userUpdateRequestDto) {
+        User user = new User();
+        if(userUpdateRequestDto.getEtin() != null) {
+            user.setEtin(userUpdateRequestDto.getEtin());
+        }
+        if(userUpdateRequestDto.getName() != null) {
+            user.setName(userUpdateRequestDto.getName());
+        }
+        if(userUpdateRequestDto.getEmail() != null) {
+            user.setEmail(userUpdateRequestDto.getEmail());
+        }
+        if(userUpdateRequestDto.getPhone() != null) {
+            user.setPhone(userUpdateRequestDto.getPhone());
+        }
+        if(userUpdateRequestDto.getAddress() != null) {
+            user.setAddress(getUserCityCategory(userUpdateRequestDto.getAddress()));
+        }
+        if(userUpdateRequestDto.getDob() != null) {
+            try {
+                user.setDob(convertDOB(userUpdateRequestDto.getDob()));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        return user;
     }
 }
